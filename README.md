@@ -21,10 +21,17 @@ Puedes acceder al repositorio y clonar el proyecto desde el siguiente enlace:
 - **React Router** - Para la navegación entre vistas.  
 - **Context API** - Gestión del estado global.  
 
-## Instalación
+## Instalación y ejecución
 
-1. Clonar el repositorio:
+Sigue estos pasos para ejecutar el proyecto en tu máquina local:
 
 ```bash
+# Clonar el repositorio
 git clone https://github.com/maruchandepollo/front-ecostyle.git
 cd front-ecostyle
+
+# Instalar dependencias
+npm install
+
+# Ejecutar el proyecto en modo desarrollo
+npm run dev
