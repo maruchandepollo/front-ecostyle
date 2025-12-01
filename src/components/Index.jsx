@@ -6,18 +6,20 @@ function Index() {
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  // Autoplay del segundo carrusel cada 3 segundos
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % 3);
-    }, 3000);
-
-    return () => clearInterval(interval);
-  }, []);
-
   // Función para navegar a ofertas (productos con descuento)
   const handleNavigateToOffers = () => {
     navigate("/products?filter=ofertas");
+  };
+
+  // Función para navegar según el slide actual del segundo carrusel
+  const handleSecondCarouselClick = () => {
+    if (currentSlide === 0) {
+      navigate("/products");
+    } else if (currentSlide === 1) {
+      navigate("/products?filter=ofertas");
+    } else if (currentSlide === 2) {
+      navigate("/sobre-nosotros");
+    }
   };
 
   return (
@@ -129,15 +131,19 @@ function Index() {
           margin: "0 auto",
           borderRadius: "15px",
           overflow: "hidden",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.2)"
+          boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+          cursor: "pointer"
         }}
       >
-        <div style={{
-          position: 'relative',
-          width: '100%',
-          height: '400px',
-          overflow: 'hidden'
-        }}>
+        <div
+          style={{
+            position: 'relative',
+            width: '100%',
+            height: '400px',
+            overflow: 'hidden'
+          }}
+          onClick={handleSecondCarouselClick}
+        >
           {/* Imagen del carrusel actual */}
           <img
             src={[
@@ -166,7 +172,10 @@ function Index() {
             {[0, 1, 2].map((index) => (
               <button
                 key={index}
-                onClick={() => setCurrentSlide(index)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setCurrentSlide(index);
+                }}
                 style={{
                   width: '12px',
                   height: '12px',
@@ -182,7 +191,10 @@ function Index() {
 
           {/* Botones de navegación */}
           <button
-            onClick={() => setCurrentSlide((prev) => (prev - 1 + 3) % 3)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setCurrentSlide((prev) => (prev - 1 + 3) % 3);
+            }}
             style={{
               position: 'absolute',
               left: '15px',
@@ -202,7 +214,10 @@ function Index() {
           </button>
 
           <button
-            onClick={() => setCurrentSlide((prev) => (prev + 1) % 3)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setCurrentSlide((prev) => (prev + 1) % 3);
+            }}
             style={{
               position: 'absolute',
               right: '15px',
