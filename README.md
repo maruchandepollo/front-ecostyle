@@ -5,8 +5,9 @@ Este es el repositorio del **frontend** del proyecto **EcoStyle**, una plataform
 ## Desarrolladores
 
 Este frontend fue desarrollado por:  
-- **Sergio Puebla**  
-- **Javiera Perez**  
+- **Sergio Puebla** - [Perfil GitHub](https://github.com/maruchandepollo)  
+- **Javiera Perez** - [Perfil GitHub](https://github.com/javie-1122)  
+- **Matías Bórquez** - [Perfil GitHub](https://github.com/Anideout) 
 
 ## Repositorio
 
