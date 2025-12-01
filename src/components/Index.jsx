@@ -1,9 +1,24 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import "../styles/index.css";
 import { useNavigate } from "react-router-dom";
 
 function Index() {
   const navigate = useNavigate();
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  // Autoplay del segundo carrusel cada 3 segundos
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % 3);
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Función para navegar a ofertas (productos con descuento)
+  const handleNavigateToOffers = () => {
+    navigate("/products?filter=ofertas");
+  };
 
   return (
     <div style={{
@@ -31,7 +46,7 @@ function Index() {
           {/* 1 */}
           <div
             className="carousel-item active"
-            onClick={() => navigate("/productos")}
+            onClick={() => navigate("/products")}
           >
             <img
               src="/assets/images/1.jpg"
@@ -46,7 +61,7 @@ function Index() {
           {/* 2 */}
           <div
             className="carousel-item"
-            onClick={() => navigate("/ofertas")}
+            onClick={handleNavigateToOffers}
           >
             <img
               src="/assets/images/4.jpg"
@@ -109,9 +124,6 @@ function Index() {
 
       {/* === SEGUNDO CARRUSEL === */}
       <div
-        id="carouselTrabajos"
-        className="carousel slide"
-        data-bs-ride="carousel"
         style={{
           maxWidth: "1000px",
           margin: "0 auto",
@@ -120,43 +132,95 @@ function Index() {
           boxShadow: "0 4px 12px rgba(0,0,0,0.2)"
         }}
       >
-        <div className="carousel-inner">
+        <div style={{
+          position: 'relative',
+          width: '100%',
+          height: '400px',
+          overflow: 'hidden'
+        }}>
+          {/* Imagen del carrusel actual */}
+          <img
+            src={[
+              "/assets/images/trabajo1.jpg",
+              "/assets/images/trabajo2.jpg",
+              "/assets/images/trabajo3.jpg"
+            ][currentSlide]}
+            alt={`Trabajo ${currentSlide + 1}`}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              transition: 'opacity 0.5s ease-in-out'
+            }}
+          />
 
-          {/* IMG 1 */}
-          <div className="carousel-item active">
-            <img
-              src="/assets/images/trabajo1.jpg"
-              className="d-block w-100 carousel-img"
-              alt="Trabajo 1"
-            />
+          {/* Indicadores */}
+          <div style={{
+            position: 'absolute',
+            bottom: '15px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            display: 'flex',
+            gap: '8px'
+          }}>
+            {[0, 1, 2].map((index) => (
+              <button
+                key={index}
+                onClick={() => setCurrentSlide(index)}
+                style={{
+                  width: '12px',
+                  height: '12px',
+                  borderRadius: '50%',
+                  border: 'none',
+                  background: index === currentSlide ? '#2e7d32' : 'rgba(255, 255, 255, 0.6)',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease'
+                }}
+              />
+            ))}
           </div>
 
-          {/* IMG 2 */}
-          <div className="carousel-item">
-            <img
-              src="/assets/images/trabajo2.jpg"
-              className="d-block w-100 carousel-img"
-              alt="Trabajo 2"
-            />
-          </div>
+          {/* Botones de navegación */}
+          <button
+            onClick={() => setCurrentSlide((prev) => (prev - 1 + 3) % 3)}
+            style={{
+              position: 'absolute',
+              left: '15px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              background: 'rgba(0, 0, 0, 0.5)',
+              color: 'white',
+              border: 'none',
+              fontSize: '24px',
+              padding: '10px 15px',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              zIndex: 10
+            }}
+          >
+            &#10094;
+          </button>
 
-          {/* IMG 3 */}
-          <div className="carousel-item">
-            <img
-              src="/assets/images/trabajo3.jpg"
-              className="d-block w-100 carousel-img"
-              alt="Trabajo 3"
-            />
-          </div>
-
+          <button
+            onClick={() => setCurrentSlide((prev) => (prev + 1) % 3)}
+            style={{
+              position: 'absolute',
+              right: '15px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              background: 'rgba(0, 0, 0, 0.5)',
+              color: 'white',
+              border: 'none',
+              fontSize: '24px',
+              padding: '10px 15px',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              zIndex: 10
+            }}
+          >
+            &#10095;
+          </button>
         </div>
-
-        <button className="carousel-control-prev" type="button" data-bs-target="#carouselTrabajos" data-bs-slide="prev">
-          <span className="carousel-control-prev-icon"></span>
-        </button>
-        <button className="carousel-control-next" type="button" data-bs-target="#carouselTrabajos" data-bs-slide="next">
-          <span className="carousel-control-next-icon"></span>
-        </button>
       </div>
 
       <br /><br />

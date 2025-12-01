@@ -1,14 +1,25 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useProducts } from "../hooks/useProducts";
 import { useAuth } from "../hooks/useAuth";
+import { useSearchParams } from "react-router-dom";
 
 function Products() {
   const { products, addToCart } = useProducts();
   const { currentUser } = useAuth();
+  const [searchParams] = useSearchParams();
 
   // Estado para filtros
-  const [filter, setFilter] = useState("todas"); // 'todas', 'disponibles', 'ofertas'
+  const initialFilter = searchParams.get("filter") || "todas";
+  const [filter, setFilter] = useState(initialFilter); // 'todas', 'disponibles', 'ofertas'
   const [mensaje, setMensaje] = useState({ text: "", type: "" });
+
+  // Actualizar filter cuando cambien los parámetros de URL
+  useEffect(() => {
+    const filterParam = searchParams.get("filter");
+    if (filterParam) {
+      setFilter(filterParam);
+    }
+  }, [searchParams]);
 
   // Verificar si el usuario es admin
   const isAdmin = currentUser?.role === "admin";
