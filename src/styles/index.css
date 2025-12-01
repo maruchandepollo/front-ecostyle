@@ -1,0 +1,187 @@
+html,
+body {
+  height: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  flex: 1;
+}
+
+/* === Carrusel === */
+.carousel-img {
+  object-fit: cover;
+  width: 100%;
+  height: 45vh;
+  max-height: 550px;
+  border-radius: 15px;
+}
+
+@media (min-width: 658px) {
+  .carousel-img {
+    height: 55vh;
+  }
+}
+
+@media (min-width: 900px) {
+  .carousel-img {
+    height: 60vh;
+  }
+}
+
+.carousel-caption {
+  text-align: center;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 10px;
+  padding: 10px 15px;
+}
+
+/* === Cards de productos === */
+.card-animated {
+  position: relative;
+  width: 280px;
+  height: 360px;
+  background: #ffffff;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+}
+
+.card-animated:hover {
+  transform: translateY(-8px) scale(1.03);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+}
+
+/* Imagen principal */
+.first-content {
+  width: 100%;
+  height: 100%;
+}
+
+.first-content img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+/* Overlay del hover */
+.second-content {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  color: white;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-animated:hover .first-content img {
+  transform: scale(1.1);
+  opacity: 0.5;
+}
+
+.card-animated:hover .second-content {
+  opacity: 1;
+}
+
+/* Imagen del hover */
+.second-content img {
+  width: 60%;
+  height: auto;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  object-fit: cover;
+}
+
+/* Nombre del producto */
+.second-content p {
+  margin: 0;
+  font-weight: 600;
+  font-size: 1.1rem;
+  text-align: center;
+}
+
+/* === Responsivo === */
+@media (max-width: 768px) {
+  .card-animated {
+    width: 220px;
+    height: 300px;
+  }
+}
+
+@media (max-width: 480px) {
+  .card-animated {
+    width: 180px;
+    height: 240px;
+  }
+
+  .second-content img {
+    width: 70%;
+  }
+
+  .second-content p {
+    font-size: 0.9rem;
+  }
+}
+
+.home-bg {
+  background-image: url("/assets/images/fondoindex.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  padding: 50px 0;
+}
+
+.eco-title {
+  font-family: "Poppins", sans-serif;
+  font-size: 2rem;
+  font-weight: 700;
+  text-align: center;
+  margin-top: 50px;
+  margin-bottom: 30px;
+
+background: linear-gradient(90deg, #2e7d32, #66bb6a);
+-webkit-background-clip: text; 
+background-clip: text;        
+
+  letter-spacing: 1px;
+
+  position: relative;
+  padding-bottom: 10px;
+}
+
+/* Línea decorativa estilo hoja debajo */
+.eco-title::after {
+  content: "";
+  width: 90px;
+  height: 4px;
+  background: #4caf50;
+  display: block;
+  margin: 12px auto 0;
+  border-radius: 4px;
+  box-shadow: 0 0 10px #4caf50a6;
+}
+
+/* Animación sutil */
+.eco-title {
+  animation: fadeInUp 0.8s ease forwards;
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

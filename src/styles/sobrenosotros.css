@@ -1,0 +1,66 @@
+.sobre-container {
+  background: #f1f8f4; /* Verde muy suave */
+  min-height: 100vh;
+  padding: 3rem 1.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.sobre-content {
+  max-width: 900px;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 2.5rem;
+  box-shadow: 0 8px 20px rgba(0, 60, 40, 0.15);
+  border: 1px solid #cfe8d7;
+}
+
+.title {
+  font-size: 2.8rem;
+  font-weight: 800;
+  text-align: center;
+  color: #2f6b3e; /* Verde profundo */
+  margin-bottom: 1.5rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.subtitle {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #3a8b4e;
+  margin-bottom: 0.7rem;
+  border-left: 6px solid #7ecb85;
+  padding-left: 12px;
+}
+
+.text {
+  font-size: 1.15rem;
+  line-height: 1.75;
+  color: #4e5a4f;
+  margin-bottom: 1.8rem;
+}
+
+.text strong {
+  color: #2b5f34;
+}
+
+.sobre-img-box {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.sobre-img {
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 5px solid #9dd9a3;
+  box-shadow: 0 6px 12px rgba(20, 60, 30, 0.2);
+  transition: transform 0.3s ease;
+}
+
+.sobre-img:hover {
+  transform: scale(1.06);
+}

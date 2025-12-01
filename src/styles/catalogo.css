@@ -1,0 +1,147 @@
+/* ===== Fondo y tipografía general ===== */
+body {
+    background-color: #f8f9fa;
+    font-family: "Arial", sans-serif;
+    color: #333;
+}
+
+/* ===== Encabezado con degradado ===== */
+.header-catalogo {
+    background: linear-gradient(135deg, #2e7d32 0%, #388e3c 100%);
+    color: white;
+    padding: 6rem 0 3rem;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+/* ===== Tarjetas de planta ===== */
+.plant-card {
+    border: none;
+    border-radius: 18px;
+    overflow: hidden;
+    background: white;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    position: relative;
+}
+
+.plant-card:hover {
+    transform: translateY(-7px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
+
+/* ===== Imagen de la planta ===== */
+.plant-image {
+    height: 260px;
+    width: 100%;
+    object-fit: cover;
+    background: linear-gradient(45deg, #e8f5e9, #c8e6c9);
+}
+
+/* ===== Etiqueta de disponibilidad ===== */
+.disponibilidad {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: #ffffffee;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+}
+
+/* ===== Precio ===== */
+.price-tag {
+    font-size: 1.6rem;
+    font-weight: bold;
+    color: #2e7d32;
+}
+
+/* ===== Contenido de la tarjeta ===== */
+.precio-body {
+    padding: 1.8rem;
+}
+
+/* ===== Botón verde principal ===== */
+.btn-plant {
+    width: 100%;
+    background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+    border: none;
+    padding: 0.8rem;
+    border-radius: 30px;
+    font-weight: 600;
+    font-size: 1rem;
+    color: white;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 10px rgba(46, 125, 50, 0.2);
+}
+
+.btn-plant:hover {
+    transform: scale(1.07);
+    box-shadow: 0 5px 18px rgba(46, 125, 50, 0.3);
+}
+
+/* ===== Lista de características ===== */
+.plant-features {
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0;
+}
+
+.plant-features li {
+    padding: 0.35rem 0;
+    font-size: 0.95rem;
+    color: #555;
+    display: flex;
+    align-items: center;
+}
+
+.plant-features li i {
+    color: #4caf50;
+    margin-right: 0.5rem;
+}
+
+/* ===== Filtros ===== */
+.filter-section {
+    background: white;
+    padding: 1.7rem;
+    border-radius: 18px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+}
+
+/* ===== Hover más suave para inputs / selects ===== */
+.filter-section select,
+.filter-section input {
+    transition: all 0.25s ease;
+}
+
+.filter-section select:focus,
+.filter-section input:focus {
+    border-color: #4caf50 !important;
+    box-shadow: 0 0 8px rgba(46, 125, 50, 0.3) !important;
+}
+
+.badge-agotado {
+  background: #b71c1c;
+  color: white;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+.badge-oferta {
+  background: #f57f17;
+  color: white;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
