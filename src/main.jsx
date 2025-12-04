@@ -9,6 +9,11 @@ import "./styles/carrito.css";
 import "./styles/login.css";
 import "./styles/catalogo.css";
 
+// Limpiar localStorage si no hay token válido (prevenir sesiones fantasma)
+if (!localStorage.getItem("token")) {
+  localStorage.removeItem("usuarioActual");
+}
+
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <App />

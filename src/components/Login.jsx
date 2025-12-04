@@ -14,6 +14,7 @@ function Login() {
 
   // Registro
   const [name, setName] = useState("");
+  const [rut, setRut] = useState("");
   const [regEmail, setRegEmail] = useState("");
   const [regPassword, setRegPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -27,9 +28,9 @@ function Login() {
     return () => document.body.classList.remove("login-page");
   }, []);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    const result = loginUser(email, password);
+    const result = await loginUser(email, password);
 
     if (result.ok) {
       setLoginMsg({ text: "¡Inicio de sesión exitoso!", type: "success" });
@@ -39,7 +40,7 @@ function Login() {
     }
   };
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
 
     if (regPassword !== confirmPassword) {
@@ -47,8 +48,9 @@ function Login() {
       return;
     }
 
-    const result = registerUser({
+    const result = await registerUser({
       name,
+      rut,
       email: regEmail,
       pass: regPassword,
     });
@@ -161,6 +163,15 @@ function Login() {
                     placeholder="Nombre completo"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
+                    required
+                  />
+
+                  <input
+                    type="text"
+                    className="eco-input"
+                    placeholder="RUT (ej: 12345678-K)"
+                    value={rut}
+                    onChange={(e) => setRut(e.target.value)}
                     required
                   />
 

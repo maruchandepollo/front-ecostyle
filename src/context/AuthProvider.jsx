@@ -1,57 +1,76 @@
 import { useState, useEffect } from "react";
 import { AuthContext } from "./AuthContext";
-
-// Expresión regular para validar dominios permitidos
-const ALLOWED_DOMAINS_RE = /@(?:duocuc\.cl|duoc\.cl|gmail\.com)$/i;
+import { 
+  loginUsuario, 
+  registrarUsuario, 
+  logoutUsuario,
+  actualizarUsuario,
+  eliminarUsuario
+} from "../services/UsuarioService";
 
 // si se registra, te reenvia a login
 const AUTO_LOGIN_AFTER_REGISTER = false;
 
 export function AuthProvider({ children }) {
-  // Leer usuarios desde localStorage o cargar los predeterminados
-  const [users, setUsers] = useState(() => {
-    const saved = localStorage.getItem("users");
-    if (saved) return JSON.parse(saved);
-
+  // Estado para el usuario actual
+  const [currentUser, setCurrentUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  // Almacenar usuarios registrados para validar en login
+  const [registeredUsers, setRegisteredUsers] = useState(() => {
+    // Usuario admin por defecto
     return [
-      { name: "Admin", email: "admin@gmail.com", pass: "1234", role: "admin" },
-      { name: "Usuario", email: "user@gmail.com", pass: "1234", role: "user" },
+      {
+        email: "admin@ecostyle.com",
+        password: "admin123",
+        nombre: "Admin",
+        rut: "00000000-0",
+      }
     ];
   });
 
-  // Estado para el usuario actual
-  const [currentUser, setCurrentUser] = useState(null);
-
-  // Recuperar usuario logueado si existe
+  // Recuperar usuario logueado si existe al cargar la app
   useEffect(() => {
-    const savedUser = localStorage.getItem("currentUser");
-    if (savedUser) {
-      setCurrentUser(JSON.parse(savedUser));
+    const savedUser = localStorage.getItem("usuarioActual");
+    const token = localStorage.getItem("token");
+    
+    // Solo recuperar si hay usuario Y token válido
+    if (savedUser && token) {
+      try {
+        const parsed = JSON.parse(savedUser);
+        // Verificar si el tipo es ADMIN o admin (case-insensitive)
+        const isAdminUser = parsed.tipo?.toUpperCase() === "ADMIN";
+        setCurrentUser({
+          email: parsed.email,
+          nombre: parsed.nombre,
+          role: isAdminUser ? "admin" : "user",
+        });
+      } catch (error) {
+        console.error("Error al recuperar usuario:", error);
+        localStorage.removeItem("usuarioActual");
+        localStorage.removeItem("token");
+      }
     }
   }, []);
 
-  // Guardar usuarios en localStorage cuando cambien
-  useEffect(() => {
-    localStorage.setItem("users", JSON.stringify(users));
-  }, [users]);
-
   // Validar dominio del email
   const emailDomainOk = (email) => {
-    return ALLOWED_DOMAINS_RE.test((email || "").trim());
+    // Validar que sea email y que sea de dominio permitido
+    const validDomains = ["duocuc.cl", "duoc.cl", "gmail.com", "ecostyle.com"];
+    const emailTrimmed = (email || "").trim().toLowerCase();
+    
+    // Verificar formato de email
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrimmed)) {
+      return false;
+    }
+    
+    // Verificar dominio permitido
+    const domain = emailTrimmed.split("@")[1];
+    return validDomains.includes(domain);
   };
 
-  // Buscar usuario por email
-  const findUserByEmail = (email) => {
-    return (
-      users.find(
-        (u) => u.email.toLowerCase() === (email || "").toLowerCase()
-      ) || null
-    );
-  };
-
-  // Registrar un nuevo usuario
-  const registerUser = ({ name, email, pass }) => {
-    if (!name?.trim() || !email?.trim() || !pass?.trim()) {
+  // Registrar un nuevo usuario usando el servicio del backend
+  const registerUser = async ({ name, rut, email, pass }) => {
+    if (!name?.trim() || !rut?.trim() || !email?.trim() || !pass?.trim()) {
       return {
         ok: false,
         code: "missing_fields",
@@ -63,50 +82,64 @@ export function AuthProvider({ children }) {
       return {
         ok: false,
         code: "bad_domain",
-        message: "El correo no es válido, usa duocuc.cl, duoc.cl o gmail.com",
+        message: "Dominio no válido",
       };
     }
 
-    if (findUserByEmail(email)) {
+    // Verificar si el email ya está registrado localmente
+    if (registeredUsers.some(u => u.email.toLowerCase() === email.trim().toLowerCase())) {
       return {
         ok: false,
-        code: "already_exists",
-        message: "El correo ya existe.",
+        code: "email_exists",
+        message: "El email ya está registrado",
       };
     }
 
-    const newUser = {
-      name: name.trim(),
-      email: email.trim(),
-      pass: pass.trim(),
-      role: "user",
-    };
+    try {
+      setIsLoading(true);
+      // Llamar al servicio del backend para registrar
+      const newUser = await registrarUsuario({
+        name: name.trim(),
+        rut: rut.trim(),
+        email: email.trim(),
+        pass: pass.trim(),
+      });
 
-    // Guardar usuario
-    setUsers((prevUsers) => [...prevUsers, newUser]);
+      // Agregar a la lista de usuarios registrados localmente
+      setRegisteredUsers([...registeredUsers, {
+        email: email.trim(),
+        password: pass.trim(),
+        nombre: name.trim(),
+        rut: rut.trim(),
+      }]);
 
-    if (AUTO_LOGIN_AFTER_REGISTER) {
-      const logged = {
-        name: newUser.name,
-        email: newUser.email,
-        role: newUser.role,
-      };
-
-      setCurrentUser(logged);
-      localStorage.setItem("currentUser", JSON.stringify(logged));
+      if (AUTO_LOGIN_AFTER_REGISTER) {
+        setCurrentUser({
+          email: newUser.email || email.trim(),
+          nombre: newUser.nombre || name.trim(),
+          role: "user",
+        });
+      }
 
       return {
         ok: true,
-        code: "registered_and_logged",
-        message: "Usuario registrado y logueado correctamente",
+        code: "registered",
+        user: newUser,
       };
+    } catch (error) {
+      console.error("Error al registrar usuario:", error);
+      return {
+        ok: false,
+        code: "registration_error",
+        message: error.message || "Error al registrar el usuario",
+      };
+    } finally {
+      setIsLoading(false);
     }
-
-    return { ok: true, code: "registered", user: newUser };
   };
 
-  // Loguear usuario
-  const loginUser = (email, pass) => {
+  // Loguear usuario usando el servicio del backend
+  const loginUser = async (email, pass) => {
     if (!email?.trim() || !pass?.trim()) {
       return {
         ok: false,
@@ -123,77 +156,85 @@ export function AuthProvider({ children }) {
       };
     }
 
-    const user = findUserByEmail(email);
-    if (!user) {
+    try {
+      setIsLoading(true);
+      // Llamar al servicio del backend para loguear
+      const user = await loginUsuario(email.trim(), pass.trim());
+
+      setCurrentUser({
+        email: user.email,
+        nombre: user.nombre || user.name,
+        role: user.tipo?.toUpperCase() === "ADMIN" ? "admin" : "user",
+      });
+
+      return {
+        ok: true,
+        code: "logged_in",
+        user: user,
+      };
+    } catch (error) {
+      console.error("Error al iniciar sesión:", error);
       return {
         ok: false,
-        code: "not_found",
-        message: "Este correo no está registrado.",
+        code: "login_error",
+        message: error.message || "Error al iniciar sesión",
       };
+    } finally {
+      setIsLoading(false);
     }
-
-    if (user.pass !== pass) {
-      return {
-        ok: false,
-        code: "bad_credentials",
-        message: "Usuario o contraseña no válidos.",
-      };
-    }
-
-    const logged = {
-      name: user.name,
-      email: user.email,
-      role: user.role,
-    };
-
-    setCurrentUser(logged);
-    localStorage.setItem("currentUser", JSON.stringify(logged));
-
-    return { ok: true, code: "logged_in", user };
   };
 
   // Cerrar sesión
   const logout = () => {
+    logoutUsuario(); // Limpia localStorage
     setCurrentUser(null);
-    localStorage.removeItem("currentUser");
   };
 
   // Actualizar usuario
-  const updateUser = (email, updatedData) => {
-    setUsers((prevUsers) =>
-      prevUsers.map((user) =>
-        user.email.toLowerCase() === email.toLowerCase()
-          ? { ...user, ...updatedData }
-          : user
-      )
-    );
-    
-    // Si el usuario actual fue actualizado, actualizar también su sesión
-    if (currentUser?.email.toLowerCase() === email.toLowerCase()) {
-      const updated = {
-        name: updatedData.name || currentUser.name,
-        email: updatedData.email || currentUser.email,
-        role: updatedData.role || currentUser.role,
-      };
-      setCurrentUser(updated);
-      localStorage.setItem("currentUser", JSON.stringify(updated));
+  const updateUser = async (email, updatedData) => {
+    try {
+      setIsLoading(true);
+      // Llamar al servicio del backend para actualizar
+      const result = await actualizarUsuario(email, updatedData);
+      
+      // Actualizar el usuario en contexto si es el usuario actual
+      if (currentUser?.email === email) {
+        const updated = {
+          email: result.email || currentUser.email,
+          nombre: result.nombre || currentUser.nombre,
+          role: result.role || currentUser.role,
+        };
+        setCurrentUser(updated);
+      }
+      
+      return { ok: true, message: "Usuario actualizado correctamente" };
+    } catch (error) {
+      console.error("Error al actualizar usuario:", error);
+      return { ok: false, message: error.message };
+    } finally {
+      setIsLoading(false);
     }
-    
-    return { ok: true, message: "Usuario actualizado correctamente" };
   };
 
   // Eliminar usuario
-  const deleteUser = (email) => {
-    setUsers((prevUsers) =>
-      prevUsers.filter((user) => user.email.toLowerCase() !== email.toLowerCase())
-    );
-    
-    // Si el usuario actual fue eliminado, cerrar sesión
-    if (currentUser?.email.toLowerCase() === email.toLowerCase()) {
-      logout();
+  const deleteUser = async (email) => {
+    try {
+      setIsLoading(true);
+      // Llamar al servicio del backend para eliminar
+      await eliminarUsuario(email);
+      
+      // Si el usuario actual fue eliminado, cerrar sesión
+      if (currentUser?.email === email) {
+        logout();
+      }
+      
+      return { ok: true, message: "Usuario eliminado correctamente" };
+    } catch (error) {
+      console.error("Error al eliminar usuario:", error);
+      return { ok: false, message: error.message };
+    } finally {
+      setIsLoading(false);
     }
-    
-    return { ok: true, message: "Usuario eliminado correctamente" };
   };
 
   // Verificar si el usuario está autenticado
@@ -204,7 +245,6 @@ export function AuthProvider({ children }) {
 
   const value = {
     currentUser,
-    users,
     registerUser,
     loginUser,
     logout,
@@ -212,6 +252,7 @@ export function AuthProvider({ children }) {
     deleteUser,
     isAuthenticated,
     isAdmin,
+    isLoading,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

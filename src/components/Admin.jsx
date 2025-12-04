@@ -1,12 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useProducts } from "../hooks/useProducts";
+import { useNavigate } from "react-router-dom";
+import { listarUsuarios, eliminarUsuario, actualizarUsuario } from "../services/UsuarioService";
 import "../styles/admin.css";
 
 export default function Admin() {
-  const { users, updateUser, deleteUser } = useAuth();
+  const { currentUser, isAdmin } = useAuth();
   const { products, addProduct, updateProduct, deleteProduct } = useProducts();
-  
+  const navigate = useNavigate();
+  const [users, setUsers] = useState([]);
   const [activeTab, setActiveTab] = useState("productos");
   const [showFormProduct, setShowFormProduct] = useState(false);
   const [showFormUser, setShowFormUser] = useState(false);
@@ -33,6 +36,36 @@ export default function Admin() {
     role: "user",
   });
 
+  // Proteger ruta: Solo admin puede acceder
+  useEffect(() => {
+    if (!currentUser) {
+      navigate("/login");
+      return;
+    }
+    if (!isAdmin()) {
+      navigate("/");
+      return;
+    }
+  }, [currentUser, isAdmin, navigate]);
+  
+  // Cargar usuarios desde backend
+  useEffect(() => {
+    const cargarUsuarios = async () => {
+      try {
+        const usuariosDelBackend = await listarUsuarios();
+        console.log("Usuarios del backend:", usuariosDelBackend);
+        setUsers(usuariosDelBackend || []);
+      } catch (error) {
+        console.error("Error al cargar usuarios:", error);
+        setUsers([]);
+      }
+    };
+
+    if (isAdmin()) {
+      cargarUsuarios();
+    }
+  }, [isAdmin]);
+
   const showSuccess = (message) => {
     setSuccessMessage(message);
     setTimeout(() => setSuccessMessage(""), 3000);
@@ -41,31 +74,68 @@ export default function Admin() {
   // ========== FUNCIONES PRODUCTO ==========
   const handleProductChange = (e) => {
     const { name, value } = e.target;
+    let processedValue = value;
+    
+    // Convertir a número si es un campo numérico
+    if (name === "precio" || name === "stock" || name === "descuento") {
+      processedValue = value === "" ? "" : Number(value);
+    }
+    
     setFormProduct((prev) => ({
       ...prev,
-      [name]: name === "precio" || name === "stock" || name === "descuento" ? Number(value) : value,
+      [name]: processedValue,
     }));
   };
 
-  const handleProductSubmit = (e) => {
+  const handleProductSubmit = async (e) => {
     e.preventDefault();
-    if (editingProduct) {
-      updateProduct(editingProduct.id, formProduct);
-      showSuccess("Producto actualizado correctamente");
-      setEditingProduct(null);
-    } else {
-      addProduct(formProduct);
-      showSuccess("Producto creado correctamente");
+    
+    // Validar que los campos requeridos no estén vacíos
+    if (!formProduct.nombre || formProduct.nombre.toString().trim() === "") {
+      showSuccess("Error: El nombre del producto es obligatorio");
+      return;
     }
-    setFormProduct({
-      nombre: "",
-      precio: "",
-      stock: "",
-      descripcion: "",
-      img: "",
-      descuento: 0,
-    });
-    setShowFormProduct(false);
+    
+    const precio = Number(formProduct.precio);
+    if (isNaN(precio) || precio <= 0) {
+      showSuccess("Error: El precio debe ser un número mayor a 0");
+      return;
+    }
+    
+    const stock = Number(formProduct.stock);
+    if (isNaN(stock) || stock < 0) {
+      showSuccess("Error: El stock debe ser un número mayor o igual a 0");
+      return;
+    }
+    
+    try {
+      // Asegurar que los valores numéricos sean números válidos
+      const productoAEnviar = {
+        nombre: formProduct.nombre.trim(),
+        precio: precio,
+        stock: stock,
+        descripcion: formProduct.descripcion || "",
+        img: formProduct.img || "",
+        descuento: Number(formProduct.descuento) || 0,
+      };
+      
+      console.log("Enviando producto:", productoAEnviar);
+      
+      if (editingProduct) {
+        await updateProduct(editingProduct.id, productoAEnviar);
+        showSuccess("Producto actualizado correctamente");
+        setEditingProduct(null);
+      } else {
+        await addProduct(productoAEnviar);
+        showSuccess("Producto creado correctamente");
+      }
+      
+      resetFormProduct();
+      setShowFormProduct(false);
+    } catch (error) {
+      console.error("Error:", error);
+      showSuccess("Error: " + (error.message || "No se pudo crear el producto"));
+    }
   };
 
   const handleEditProduct = (product) => {
@@ -78,13 +148,19 @@ export default function Admin() {
     setDeleteConfirm({ type: "product", id });
   };
 
-  const confirmDelete = () => {
-    if (deleteConfirm.type === "product") {
-      deleteProduct(deleteConfirm.id);
-      showSuccess("Producto eliminado correctamente");
-    } else if (deleteConfirm.type === "user") {
-      deleteUser(deleteConfirm.id);
-      showSuccess("Usuario eliminado correctamente");
+  const confirmDelete = async () => {
+    try {
+      if (deleteConfirm.type === "product") {
+        await deleteProduct(deleteConfirm.id);
+        showSuccess("Producto eliminado correctamente");
+      } else if (deleteConfirm.type === "user") {
+        await eliminarUsuario(deleteConfirm.id);
+        setUsers(users.filter(u => u.email !== deleteConfirm.id));
+        showSuccess("Usuario eliminado correctamente");
+      }
+    } catch (error) {
+      console.error("Error al eliminar:", error);
+      showSuccess("Error al eliminar: " + error.message);
     }
     setDeleteConfirm(null);
   };
@@ -92,6 +168,10 @@ export default function Admin() {
   const handleCancelProductForm = () => {
     setShowFormProduct(false);
     setEditingProduct(null);
+    resetFormProduct();
+  };
+
+  const resetFormProduct = () => {
     setFormProduct({
       nombre: "",
       precio: "",
@@ -111,12 +191,35 @@ export default function Admin() {
     }));
   };
 
-  const handleUserSubmit = (e) => {
+  const handleUserSubmit = async (e) => {
     e.preventDefault();
-    if (editingUser) {
-      updateUser(editingUser.email, formUser);
-      showSuccess("Usuario actualizado correctamente");
-      setEditingUser(null);
+    try {
+      if (editingUser) {
+        // Convertir role (admin/user) a tipo (ADMIN/USUARIO) para el backend
+        const usuarioParaActualizar = {
+          nombre: formUser.name,
+          email: formUser.email,
+          password: formUser.pass || editingUser.password,
+          tipo: formUser.role === "admin" ? "ADMIN" : "USUARIO",
+        };
+        
+        await actualizarUsuario(editingUser.email, usuarioParaActualizar);
+        
+        // Actualizar la lista de usuarios localmente
+        const usuariosActualizados = users.map(u => 
+          u.email === editingUser.email ? { 
+            ...u, 
+            name: formUser.name,
+            tipo: formUser.role === "admin" ? "ADMIN" : "USUARIO"
+          } : u
+        );
+        setUsers(usuariosActualizados);
+        showSuccess("Usuario actualizado correctamente");
+        setEditingUser(null);
+      }
+    } catch (error) {
+      console.error("Error al actualizar usuario:", error);
+      showSuccess("Error: " + error.message);
     }
     setFormUser({
       name: "",
@@ -129,7 +232,13 @@ export default function Admin() {
 
   const handleEditUser = (user) => {
     setEditingUser(user);
-    setFormUser(user);
+    // Convertir tipo (ADMIN/USUARIO) a role (admin/user) para el formulario
+    setFormUser({
+      name: user.name,
+      email: user.email,
+      pass: "",
+      role: user.tipo?.toUpperCase() === "ADMIN" ? "admin" : "user",
+    });
     setShowFormUser(true);
   };
 
@@ -320,9 +429,9 @@ export default function Admin() {
                   </div>
                   <div className="product-info-admin">
                     <h3>{product.nombre}</h3>
-                    <p className="price">${product.precio.toLocaleString("es-CL")}</p>
+                    <p className="price">${(product.precio || 0).toLocaleString("es-CL")}</p>
                     <p className="stock">
-                      Stock: <strong className={product.stock === 0 ? "out-of-stock" : ""}>{product.stock}</strong>
+                      Stock: <strong className={product.stock === 0 ? "out-of-stock" : ""}>{product.stock || 0}</strong>
                     </p>
                   </div>
                   <div className="product-actions">
@@ -434,6 +543,7 @@ export default function Admin() {
                 <thead>
                   <tr>
                     <th>Nombre</th>
+                    <th>RUT</th>
                     <th>Email</th>
                     <th>Rol</th>
                     <th>Acciones</th>
@@ -445,10 +555,11 @@ export default function Admin() {
                       <td>
                         <strong>{user.name}</strong>
                       </td>
+                      <td>{user.rut || "-"}</td>
                       <td>{user.email}</td>
                       <td>
-                        <span className={`role-badge ${user.role}`}>
-                          {user.role === "admin" ? "Administrador" : "Usuario"}
+                        <span className={`role-badge ${user.tipo?.toUpperCase() === "ADMIN" ? "admin" : "user"}`}>
+                          {user.tipo?.toUpperCase() === "ADMIN" ? "Administrador" : "Usuario"}
                         </span>
                       </td>
                       <td className="actions">

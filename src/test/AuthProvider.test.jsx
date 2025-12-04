@@ -1,6 +1,24 @@
 import { renderHook, act } from "@testing-library/react";
 import { AuthProvider } from "../context/AuthProvider";
 import { useAuth } from "../hooks/useAuth";
+import { JSDOM } from "jsdom";
+import { expect, describe, test, beforeAll } from "vitest";
+
+// Configurar JSDOM globalmente
+beforeAll(() => {
+  const dom = new JSDOM("<!DOCTYPE html><html><body></body></html>", {
+    url: "http://localhost",
+  });
+  global.window = dom.window;
+  global.document = dom.window.document;
+  global.navigator = dom.window.navigator;
+  global.localStorage = {
+    getItem: () => null,
+    setItem: () => {},
+    removeItem: () => {},
+    clear: () => {},
+  };
+});
 
 const wrapper = ({ children }) => <AuthProvider>{children}</AuthProvider>;
 
@@ -12,14 +30,14 @@ describe("AuthProvider - Login", () => {
     // 2. Act (Actuar)
     let loginResult;
     act(() => {
-      loginResult = result.current.loginUser("admin@gmail.com", "1234");
+      loginResult = result.current.loginUser("admin@ecostyle.com", "admin123");
     });
 
     // 3. Assert (Afirmar)
     expect(loginResult.ok).toBe(true);
     expect(loginResult.code).toBe("logged_in");
     expect(result.current.currentUser).not.toBeNull();
-    expect(result.current.currentUser.email).toBe("admin@gmail.com");
+    expect(result.current.currentUser.email).toBe("admin@ecostyle.com");
   });
   test("Todos los campos son obligatorios", () => {
     const { result } = renderHook(() => useAuth(), { wrapper });
@@ -78,6 +96,22 @@ describe("AuthProvider - Login", () => {
     expect(loginResult.message).toBe("Dominio no válido");
   });
 
+  test("debe rechazar contraseña incorrecta", () => {
+    // 1. Arrange (Preparar)
+    const { result } = renderHook(() => useAuth(), { wrapper });
+
+    // 2. Act (Actuar) - Intentar login con contraseña incorrecta
+    let loginResult;
+    act(() => {
+      loginResult = result.current.loginUser("admin@ecostyle.com", "wrongpassword");
+    });
+
+    // 3. Assert (Afirmar)
+    expect(loginResult.ok).toBe(false);
+    expect(loginResult.code).toBe("invalid_password");
+    expect(loginResult.message).toBe("Contraseña incorrecta");
+  });
+
   describe("AuthProvider - Flujo completo", () => {
     test("debe permitir registrar un usuario y luego loguearse", () => {
       // 1. Arrange (Preparar)
@@ -88,6 +122,7 @@ describe("AuthProvider - Login", () => {
       act(() => {
         registerResult = result.current.registerUser({
           name: "Soren Kierkegaard",
+          rut: "12345678-9",
           email: "kierkegardiano@duocuc.cl",
           pass: "123",
         });
@@ -105,6 +140,11 @@ describe("AuthProvider - Login", () => {
           "123",
         );
       });
+
+      // Assert - Login exitoso con la contraseña correcta
+      expect(loginResult.ok).toBe(true);
+      expect(loginResult.code).toBe("logged_in");
+      expect(result.current.currentUser.email).toBe("kierkegardiano@duocuc.cl");
     });
   });
 });

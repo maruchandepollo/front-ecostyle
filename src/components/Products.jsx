@@ -2,9 +2,10 @@ import React, { useState, useEffect } from "react";
 import { useProducts } from "../hooks/useProducts";
 import { useAuth } from "../hooks/useAuth";
 import { useSearchParams } from "react-router-dom";
+import ModalAgregarProducto from "./ModalAgregarProducto";
 
 function Products() {
-  const { products, addToCart } = useProducts();
+  const { products, addToCart, addProduct } = useProducts();
   const { currentUser } = useAuth();
   const [searchParams] = useSearchParams();
 
@@ -12,6 +13,8 @@ function Products() {
   const initialFilter = searchParams.get("filter") || "todas";
   const [filter, setFilter] = useState(initialFilter); // 'todas', 'disponibles', 'ofertas'
   const [mensaje, setMensaje] = useState({ text: "", type: "" });
+  const [showModal, setShowModal] = useState(false);
+  const [isLoadingProduct, setIsLoadingProduct] = useState(false);
 
   // Actualizar filter cuando cambien los parámetros de URL
   useEffect(() => {
@@ -23,6 +26,42 @@ function Products() {
 
   // Verificar si el usuario es admin
   const isAdmin = currentUser?.role === "admin";
+
+  // Manejar el agregar producto
+  const handleAgregarProducto = async (productoData) => {
+    try {
+      setIsLoadingProduct(true);
+      const result = await addProduct(productoData);
+      
+      if (result.ok) {
+        setMensaje({
+          text: "¡Producto creado exitosamente!",
+          type: "success",
+        });
+        setShowModal(false);
+      } else {
+        setMensaje({
+          text: result.message || "Error al crear el producto",
+          type: "danger",
+        });
+      }
+
+      setTimeout(() => {
+        setMensaje({ text: "", type: "" });
+      }, 3000);
+    } catch (error) {
+      console.error("Error:", error);
+      setMensaje({
+        text: "Error al crear el producto",
+        type: "danger",
+      });
+      setTimeout(() => {
+        setMensaje({ text: "", type: "" });
+      }, 3000);
+    } finally {
+      setIsLoadingProduct(false);
+    }
+  };
 
 
   // Función para agregar al carrito
@@ -94,6 +133,14 @@ function Products() {
       minHeight: '100vh',
       paddingBottom: '2rem'
     }}>
+      {/* Modal para agregar producto */}
+      <ModalAgregarProducto
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        onSubmit={handleAgregarProducto}
+        isLoading={isLoadingProduct}
+      />
+
       {/* Header del catálogo */}
       <div className="header-catalogo">
         <div className="container">
@@ -152,7 +199,10 @@ function Products() {
                       Ofertas
                     </button>
                     {isAdmin && (
-                      <button className="btn btn-success">
+                      <button 
+                        className="btn btn-success"
+                        onClick={() => setShowModal(true)}
+                      >
                         <i className="fas fa-plus"></i> Agregar Producto
                       </button>
                     )}
@@ -213,7 +263,7 @@ function Products() {
                           product.precioOriginal ? "text-success" : ""
                         }`}
                       >
-                        ${product.precio.toLocaleString("es-CL")}
+                        ${(product.precio || 0).toLocaleString("es-CL")}
                       </span>
                       {product.discount && (
                         <span className="badge bg-danger ms-2">

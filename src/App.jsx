@@ -5,7 +5,7 @@ import { LayoutProvider } from "./context/LayoutProvider";
 import { useAuth } from "./hooks/useAuth";
 import Perfil from "./components/Perfil";
 import Admin from "./components/Admin";
-
+import { CargarProductosIniciales } from "./components/CargarProductosIniciales";
 
 
 // Componentes
@@ -34,9 +34,12 @@ function PublicRoute({ children }) {
 }
 
 function AppRoutes() {
+  const { currentUser } = useAuth();
+
   return (
     <>
-      <Sidebar />
+      {/* Solo mostrar Sidebar y Footer si está autenticado */}
+      {currentUser && <Sidebar />}
       <main style={{ flex: 1 }}>
         <Routes>
           <Route
@@ -101,7 +104,7 @@ function AppRoutes() {
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </main>
-      <Footer />
+      {currentUser && <Footer />}
     </>
   );
 }
@@ -113,6 +116,7 @@ function App() {
         <LayoutProvider>
           <BrowserRouter>
             <AppRoutes />
+            <CargarProductosIniciales />
           </BrowserRouter>
         </LayoutProvider>
       </ProductsProvider>

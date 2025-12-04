@@ -2,7 +2,18 @@ import { renderHook, act } from "@testing-library/react";
 import { ProductsProvider } from "../context/ProductsProvider";
 import { ProductsContext } from "../context/ProductsContext";
 import { useContext } from "react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, beforeAll } from "vitest";
+import { JSDOM } from "jsdom";
+
+// Configurar JSDOM globalmente
+beforeAll(() => {
+  const dom = new JSDOM("<!DOCTYPE html><html><body></body></html>", {
+    url: "http://localhost",
+  });
+  global.window = dom.window;
+  global.document = dom.window.document;
+  global.navigator = dom.window.navigator;
+});
 
 const useProductsContext = () => useContext(ProductsContext);
 
@@ -13,8 +24,8 @@ describe("ProductsProvider", () => {
         wrapper: ProductsProvider,
       });
 
-      expect(result.current.products).toHaveLength(5);
-      expect(result.current.getAllProducts()).toHaveLength(5);
+      expect(result.current.products).toHaveLength(10);
+      expect(result.current.getAllProducts()).toHaveLength(10);
     });
 
     it("debe inicializar con carrito vacío", () => {
@@ -71,7 +82,7 @@ describe("ProductsProvider", () => {
 
       expect(response.ok).toBe(true);
       expect(response.product).toBeDefined();
-      expect(result.current.products).toHaveLength(6);
+      expect(result.current.products).toHaveLength(11);
       expect(response.product.nombre).toBe("Cactus");
     });
   });
@@ -104,7 +115,7 @@ describe("ProductsProvider", () => {
         result.current.deleteProduct(1001);
       });
 
-      expect(result.current.products).toHaveLength(4);
+      expect(result.current.products).toHaveLength(9);
       expect(result.current.getProductById(1001)).toBeUndefined();
     });
   });

@@ -108,6 +108,15 @@ export default function Perfil() {
 
       {/* Tarjeta Principal */}
       <div className="perfil-card">
+        {/* Sección de Información del Usuario */}
+        <div className="perfil-user-info">
+          <div className="user-info-content">
+            <h3>Bienvenido/a</h3>
+            <p className="user-name">{currentUser?.name || currentUser?.nombre || "Usuario"}</p>
+            <p className="user-email">{currentUser?.email}</p>
+          </div>
+        </div>
+
         {/* Sección de Foto */}
         <div className="perfil-photo-section">
           <div className="perfil-photo-container">
@@ -134,40 +143,6 @@ export default function Perfil() {
               Cambiar foto
             </label>
           </div>
-        </div>
-
-        {/* Sección de Información Personal */}
-        <div className="perfil-section">
-          <h2 className="perfil-section-title">Información Personal</h2>
-          <form className="perfil-form">
-            <div className="form-group">
-              <label>Nombre</label>
-              <input 
-                type="text" 
-                value={nombre}
-                onChange={(e) => setNombre(e.target.value)}
-                placeholder="Tu nombre completo"
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Email</label>
-              <input 
-                type="email" 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="tu@email.com"
-              />
-            </div>
-
-            <button 
-              type="button"
-              onClick={handleGuardarCambios}
-              className="btn-save"
-            >
-              Guardar cambios
-            </button>
-          </form>
         </div>
 
         {/* Sección de Cambio de Contraseña */}

@@ -40,6 +40,38 @@
   margin-bottom: 2rem;
 }
 
+/* Seccion de informacion del usuario */
+.perfil-user-info {
+  background: linear-gradient(135deg, #e8f5e9, #f1f8e9);
+  padding: 1.5rem;
+  border-radius: 10px;
+  margin-bottom: 2rem;
+  border-left: 4px solid #2e7d32;
+}
+
+.user-info-content h3 {
+  margin: 0 0 0.5rem 0;
+  color: #2e7d32;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.user-name {
+  margin: 0.5rem 0;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #1b5e20;
+  word-break: break-word;
+}
+
+.user-email {
+  margin: 0.5rem 0 0 0;
+  font-size: 0.9rem;
+  color: #558b2f;
+}
+
 /* Foto de perfil */
 .perfil-photo-section {
   text-align: center;
