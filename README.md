@@ -36,5 +36,3 @@ npm install
 
 # Ejecutar el proyecto en modo desarrollo
 npm run dev
-
-ahora en base a este backend https://github.com/maruchandepollo/back-ecostyle.git crea un README igual, solo que sin Javiera Perez
